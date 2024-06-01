@@ -230,7 +230,7 @@ function App() {
   };
 
   const getNextBookIndex = (): number => {
-    const maxInd = Math.max(...books.map((book) => book.id));
+    const maxInd = Math.max(...books.map((book) => book.id), 0);
     return maxInd + 1;
   };
 
