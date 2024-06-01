@@ -27,11 +27,32 @@ import { ListItem } from "./types/shared";
 import { Tags } from "./data/tags";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
 
+const enum LOCAL_DATA {
+  BOOK = "book_data",
+  CATEGORY = "cat_data",
+  TAG = "tag_data",
+}
+
 function App() {
-  const [books, setBooks] = useState<Array<Book>>(Books);
-  const [filteredBooks, setFilteredBooks] = useState<Array<Book>>(Books);
-  const [categories, setCategories] = useState<Array<ListItem>>(Categories);
-  const [tags, setTags] = useState<Array<ListItem>>(Tags);
+  const [books, setBooks] = useState<Array<Book>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.BOOK) ?? JSON.stringify(Books)
+      ) ?? Books
+  );
+  const [filteredBooks, setFilteredBooks] = useState<Array<Book>>([]);
+  const [categories, setCategories] = useState<Array<ListItem>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.CATEGORY) ?? JSON.stringify(Categories)
+      ) ?? Categories
+  );
+  const [tags, setTags] = useState<Array<ListItem>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.TAG) ?? JSON.stringify(Tags)
+      ) ?? Tags
+  );
   const [filteredCategories, setFilteredCategories] = useState<Array<number>>(
     []
   );
@@ -188,16 +209,16 @@ function App() {
   };
 
   const handleBookDelete = (book: Book): void => {
-    const foundIndex = books.findIndex(item => item.id === book.id);
+    const foundIndex = books.findIndex((item) => item.id === book.id);
     if (foundIndex === -1) {
       // error deleting book
       handleSnackbarOpen("Error! Book not found!");
     } else {
-      const tempBooks = books.filter(item => item.id !== book.id);
+      const tempBooks = books.filter((item) => item.id !== book.id);
       setBooks([...tempBooks]);
       handleSnackbarOpen("Book successfully deleted");
     }
-  }
+  };
 
   const handleEditCatOpen = (): void => {
     const inUseCats = new Set(books.flatMap((item) => item.categories));
@@ -253,7 +274,19 @@ function App() {
 
   useEffect(() => {
     updateFilteredBooks(filteredCategories, filteredTags);
-  }, [books, filteredCategories, filteredTags])
+  }, [books, filteredCategories, filteredTags]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.BOOK, JSON.stringify(books));
+  }, [books]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.CATEGORY, JSON.stringify(categories));
+  }, [categories]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.TAG, JSON.stringify(tags));
+  }, [tags]);
 
   return (
     <div>
