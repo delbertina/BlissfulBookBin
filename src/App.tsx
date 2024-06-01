@@ -187,6 +187,18 @@ function App() {
     setCurrentEditBook(NewBook);
   };
 
+  const handleBookDelete = (book: Book): void => {
+    const foundIndex = books.findIndex(item => item.id === book.id);
+    if (foundIndex === -1) {
+      // error deleting book
+      handleSnackbarOpen("Error! Book not found!");
+    } else {
+      const tempBooks = books.filter(item => item.id !== book.id);
+      setBooks([...tempBooks]);
+      handleSnackbarOpen("Book successfully deleted");
+    }
+  }
+
   const handleEditCatOpen = (): void => {
     const inUseCats = new Set(books.flatMap((item) => item.categories));
     const filteredCats = categories.filter((item) => inUseCats.has(item.id));
@@ -364,6 +376,7 @@ function App() {
         tags={tags}
         isDialogOpen={isEditBookDialogOpen}
         handleDialogClose={(book?: Book) => handleEditBookClose(book)}
+        handleDeleteBook={(book: Book) => handleBookDelete(book)}
       />
       {/* Edit Categories */}
       <EditListItemDialog

@@ -1,3 +1,4 @@
+import "./EditBookDialog.scss";
 import {
   Dialog,
   DialogTitle,
@@ -13,17 +14,21 @@ import {
   FormControl,
   InputLabel,
   SelectChangeEvent,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import IndexedChip from "../IndexedChip/IndexedChip";
 import { Book } from "../../types/book";
 import { ListItem } from "../../types/shared";
+import { Delete } from "@mui/icons-material";
 
 export interface EditBookDialogProps {
   book: Book;
   categories: ListItem[];
   tags: ListItem[];
   isDialogOpen: boolean;
+  handleDeleteBook: (book: Book) => void;
   handleDialogClose: (book?: Book) => void;
 }
 
@@ -118,6 +123,19 @@ function EditBookDialog(props: EditBookDialogProps) {
             Update the information about a book.
           </Typography>
         </div>
+        {props.book.id !== 0 && (
+          <div>
+            <Tooltip title="Delete Book">
+            <IconButton
+              aria-label="delete book"
+              color="error"
+              onClick={() => props.handleDeleteBook(props.book)}
+            >
+              <Delete />
+            </IconButton>
+            </Tooltip>
+          </div>
+        )}
       </DialogTitle>
       <DialogContent dividers={true} id="book-edit-dialog-content">
         <TextField
