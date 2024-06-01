@@ -9,6 +9,7 @@ import {
   DialogTitle,
   Divider,
   IconButton,
+  Snackbar,
   Typography,
 } from "@mui/material";
 import { Add, Delete, Edit } from "@mui/icons-material";
@@ -37,6 +38,8 @@ function EditListItemDialog(props: EditListItemDialogProps) {
   const [isEditTextDialogOpen, setIsEditTextDialogOpen] =
     useState<boolean>(false);
   const [editItem, setEditItem] = useState<ListItem>(newListItem);
+  const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
+  const [snackbarMsg, setSnackbarMsg] = useState<string>("");
 
   const handleOpenEditTextDialog = (item: ListItem): void => {
     setEditItem(item);
@@ -50,8 +53,8 @@ function EditListItemDialog(props: EditListItemDialogProps) {
       if (editItem.id === 0) {
         handleAddListItem(editedText);
       } else {
-        const foundInd = list?.findIndex((item) => item.id === editItem.id);
-        const sameNames = list?.filter(
+        const foundInd = tempList.findIndex((item) => item.id === editItem.id);
+        const sameNames = tempList.filter(
           (item) => item.name.toLowerCase() === editedText.toLowerCase()
         );
         // if there are results with the same name
@@ -62,9 +65,10 @@ function EditListItemDialog(props: EditListItemDialogProps) {
             sameNames.length > 1)
         ) {
           // display error and return
+          handleSnackbarOpen("Error! New value cannot be the same as an existing item!")
           return;
         }
-        if (!!foundInd) {
+        if (foundInd > -1) {
           tempList[foundInd].name = editedText;
           setList([...tempList]);
         }
@@ -80,6 +84,7 @@ function EditListItemDialog(props: EditListItemDialogProps) {
     // if there are results with the same name
     if (!!sameNames && sameNames.length > 0) {
       // display error and return
+      handleSnackbarOpen("Error! New value cannot be the same as an existing item!")
       return;
     }
 
@@ -99,11 +104,29 @@ function EditListItemDialog(props: EditListItemDialogProps) {
     }
     if (!listItem.isRemovable) {
       // display error
+      handleSnackbarOpen("Error! This item is not removable!")
       return;
     }
     let tempList = list;
     tempList = tempList.filter((item) => item.id !== listItem.id);
     setList([...tempList]);
+  };
+
+  const handleSnackbarOpen = (message: string) => {
+    setSnackbarMsg(message);
+    setIsSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setSnackbarMsg("");
+    setIsSnackbarOpen(false);
   };
 
   useEffect(() => {
@@ -224,6 +247,13 @@ function EditListItemDialog(props: EditListItemDialogProps) {
         dialogFieldLabel="List Item Text"
         dialogFieldValue={editItem.name ?? ""}
         handleDialogClose={(edited?: string) => handleEditText(edited)}
+      />
+      {/* Snackbar */}
+      <Snackbar
+        open={isSnackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleSnackbarClose}
+        message={snackbarMsg}
       />
     </>
   );

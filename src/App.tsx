@@ -12,11 +12,12 @@ import {
   Box,
   MenuItem,
   SelectChangeEvent,
+  Snackbar,
 } from "@mui/material";
 import "./App.scss";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { Add, Edit } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
 import { Books, NewBook } from "./data/books";
 import { Book } from "./types/book";
@@ -44,6 +45,8 @@ function App() {
     useState<boolean>(false);
   const [isEditTagDialogOpen, setIsEditTagDialogOpen] =
     useState<boolean>(false);
+  const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
+  const [snackbarMsg, setSnackbarMsg] = useState<string>("");
 
   const columns: GridColDef[] = [
     {
@@ -114,7 +117,7 @@ function App() {
       typeof value === "string"
         ? value.split(",").map((item) => parseInt(item))
         : value;
-    updateFilteredBooks(selectedCategories, filteredTags);
+    // updateFilteredBooks(selectedCategories, filteredTags);
     setFilteredCategories(selectedCategories);
   };
 
@@ -128,7 +131,7 @@ function App() {
       typeof value === "string"
         ? value.split(",").map((item) => parseInt(item))
         : value;
-    updateFilteredBooks(filteredCategories, selectedTags);
+    // updateFilteredBooks(filteredCategories, selectedTags);
     setFilteredTags(selectedTags);
   };
 
@@ -145,7 +148,6 @@ function App() {
   };
 
   const handleEditBookOpen = (id?: number): void => {
-    console.log(id);
     // If the id is falsey (including 0) handle as a new book
     if (!id) {
       setCurrentEditBook(NewBook);
@@ -153,8 +155,7 @@ function App() {
       const foundBook: Book | undefined = books.find((book) => book.id === id);
       if (!foundBook) {
         // If a truthy id was passed but it doesnt exist, display an error
-        //
-        // put error display here
+        handleSnackbarOpen("Error! Existing book not found!");
         return;
       }
       setCurrentEditBook(foundBook);
@@ -172,13 +173,13 @@ function App() {
         // then the book maybe wouldn't show up on page 1 after adding
         // that wouldn't be user intuative
         setBooks([newBook, ...books]);
-        // show success message on adding new book
+        handleSnackbarOpen("New book successfully added!");
       } else {
         // Could find the book edited instead of filtering it out
         // If the book never existed, it'll still add it which is what we want
         const filteredBooks = books.filter((oldBook) => oldBook.id !== book.id);
         setBooks([book, ...filteredBooks]);
-        // show success message on editing book
+        handleSnackbarOpen("Book successfully updated!");
       }
     }
     setIsEditBookDialogOpen(false);
@@ -194,11 +195,11 @@ function App() {
   };
 
   const handleEditCatClose = (returnList?: ListItem[]): void => {
-    console.log(returnList);
     if (!!returnList) {
       setCategories(returnList);
-      // show success
+      handleSnackbarOpen("Category list successfully updated!");
     }
+    setIsEditCatDialogOpen(false);
   };
 
   const handleEditTagOpen = (): void => {
@@ -209,17 +210,38 @@ function App() {
   };
 
   const handleEditTagClose = (returnList?: ListItem[]): void => {
-    console.log(returnList);
     if (!!returnList) {
       setTags(returnList);
-      // show success
+      handleSnackbarOpen("Tag list successfully updated!");
     }
+    setIsEditTagDialogOpen(false);
   };
 
   const getNextBookIndex = (): number => {
     const maxInd = Math.max(...books.map((book) => book.id));
     return maxInd + 1;
   };
+
+  const handleSnackbarOpen = (message: string) => {
+    setSnackbarMsg(message);
+    setIsSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setSnackbarMsg("");
+    setIsSnackbarOpen(false);
+  };
+
+  useEffect(() => {
+    updateFilteredBooks(filteredCategories, filteredTags);
+  }, [books, filteredCategories, filteredTags])
 
   return (
     <div>
@@ -325,7 +347,6 @@ function App() {
 
         <div style={{ height: "80vh", width: "100%" }}>
           <DataGrid
-            pageSizeOptions={[10, 25, 50]}
             disableRowSelectionOnClick
             onRowClick={(event: GridRowParams) =>
               handleEditBookOpen(event.row.id)
@@ -365,6 +386,13 @@ function App() {
         handleDialogClose={(returnList?: ListItem[]) =>
           handleEditTagClose(returnList)
         }
+      />
+      {/* Snackbar */}
+      <Snackbar
+        open={isSnackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleSnackbarClose}
+        message={snackbarMsg}
       />
     </div>
   );

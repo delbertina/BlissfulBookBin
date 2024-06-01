@@ -34,7 +34,7 @@ function EditBookDialog(props: EditBookDialogProps) {
   useEffect(() => {
     setCategories(props.book.categories);
     setTags(props.book.tags);
-  }, [props.book])
+  }, [props.book]);
 
   const handleCategoriesChange = (
     event: SelectChangeEvent<typeof categories>
@@ -67,8 +67,13 @@ function EditBookDialog(props: EditBookDialogProps) {
       author: inputData.author,
       genre: inputData.genre,
       rating: parseInt(inputData.rating) ?? 0,
-      categories: inputData.categories.split(",").map((item: any) => parseInt(item)),
-      tags: inputData.tags.split(",").map((item: any) => parseInt(item)),
+      // If there's anything in the string, handle it. Else, empty array.
+      categories: inputData.categories
+        ? inputData.categories.split(",").map((item: any) => parseInt(item))
+        : [],
+      tags: inputData.tags
+        ? inputData.tags.split(",").map((item: any) => parseInt(item))
+        : [],
     };
     return returnBook;
   };
@@ -174,7 +179,11 @@ function EditBookDialog(props: EditBookDialogProps) {
             renderValue={(selected: number[]) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                 {selected.map((value: number) => (
-                  <IndexedChip key={value} index={value} list={props.categories} />
+                  <IndexedChip
+                    key={value}
+                    index={value}
+                    list={props.categories}
+                  />
                 ))}
               </Box>
             )}
