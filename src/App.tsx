@@ -24,16 +24,25 @@ import IndexedChip from "./components/IndexedChip/IndexedChip";
 import { Categories } from "./data/categories";
 import { ListItem } from "./types/shared";
 import { Tags } from "./data/tags";
+import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
 
 function App() {
   const [books, setBooks] = useState<Array<Book>>(Books);
   const [filteredBooks, setFilteredBooks] = useState<Array<Book>>(Books);
   const [categories, setCategories] = useState<Array<ListItem>>(Categories);
   const [tags, setTags] = useState<Array<ListItem>>(Tags);
-  const [filteredCategories, setFilteredCategories] = useState<number[]>([]);
-  const [filteredTags, setFilteredTags] = useState<number[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Array<number>>(
+    []
+  );
+  const [filteredTags, setFilteredTags] = useState<Array<number>>([]);
+  const [unremovableCats, setUnremovableCats] = useState<Array<ListItem>>([]);
+  const [unremovableTags, setUnremovableTags] = useState<Array<ListItem>>([]);
   const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
   const [isEditBookDialogOpen, setIsEditBookDialogOpen] =
+    useState<boolean>(false);
+  const [isEditCatDialogOpen, setIsEditCatDialogOpen] =
+    useState<boolean>(false);
+  const [isEditTagDialogOpen, setIsEditTagDialogOpen] =
     useState<boolean>(false);
 
   const columns: GridColDef[] = [
@@ -177,6 +186,36 @@ function App() {
     setCurrentEditBook(NewBook);
   };
 
+  const handleEditCatOpen = (): void => {
+    const inUseCats = new Set(books.flatMap((item) => item.categories));
+    const filteredCats = categories.filter((item) => inUseCats.has(item.id));
+    setUnremovableCats(filteredCats);
+    setIsEditCatDialogOpen(true);
+  };
+
+  const handleEditCatClose = (returnList?: ListItem[]): void => {
+    console.log(returnList);
+    if (!!returnList) {
+      setCategories(returnList);
+      // show success
+    }
+  };
+
+  const handleEditTagOpen = (): void => {
+    const inUseTags = new Set(books.flatMap((item) => item.tags));
+    const filteredTags = tags.filter((item) => inUseTags.has(item.id));
+    setUnremovableTags(filteredTags);
+    setIsEditTagDialogOpen(true);
+  };
+
+  const handleEditTagClose = (returnList?: ListItem[]): void => {
+    console.log(returnList);
+    if (!!returnList) {
+      setTags(returnList);
+      // show success
+    }
+  };
+
   const getNextBookIndex = (): number => {
     const maxInd = Math.max(...books.map((book) => book.id));
     return maxInd + 1;
@@ -206,7 +245,7 @@ function App() {
                 <Typography variant="h6">Categories</Typography>
               </div>
               <div className="grid-toolbar-field-row-inner">
-                <IconButton color="warning">
+                <IconButton color="warning" onClick={() => handleEditCatOpen()}>
                   <Edit />
                 </IconButton>
               </div>
@@ -247,7 +286,7 @@ function App() {
                 <Typography variant="h6">Tags</Typography>
               </div>
               <div className="grid-toolbar-field-row-inner">
-                <IconButton color="warning">
+                <IconButton color="warning" onClick={() => handleEditTagOpen()}>
                   <Edit />
                 </IconButton>
               </div>
@@ -286,6 +325,7 @@ function App() {
 
         <div style={{ height: "80vh", width: "100%" }}>
           <DataGrid
+            pageSizeOptions={[10, 25, 50]}
             disableRowSelectionOnClick
             onRowClick={(event: GridRowParams) =>
               handleEditBookOpen(event.row.id)
@@ -296,6 +336,7 @@ function App() {
           />
         </div>
       </div>
+      {/* Edit Book */}
       <EditBookDialog
         book={currentEditBook}
         categories={categories}
@@ -304,9 +345,27 @@ function App() {
         handleDialogClose={(book?: Book) => handleEditBookClose(book)}
       />
       {/* Edit Categories */}
-      
-
+      <EditListItemDialog
+        list={categories}
+        unremovableItems={unremovableCats}
+        isDialogOpen={isEditCatDialogOpen}
+        dialogTitle="Edit Categories"
+        dialogDescription="Add, update, and delete categories."
+        handleDialogClose={(returnList?: ListItem[]) =>
+          handleEditCatClose(returnList)
+        }
+      />
       {/* Edit Tags */}
+      <EditListItemDialog
+        list={tags}
+        unremovableItems={unremovableTags}
+        isDialogOpen={isEditTagDialogOpen}
+        dialogTitle="Edit Tags"
+        dialogDescription="Add, update, and delete tags."
+        handleDialogClose={(returnList?: ListItem[]) =>
+          handleEditTagClose(returnList)
+        }
+      />
     </div>
   );
 }

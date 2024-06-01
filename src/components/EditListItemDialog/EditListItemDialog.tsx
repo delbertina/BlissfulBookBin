@@ -1,3 +1,4 @@
+import "./EditListItemDialog.scss";
 import { useEffect, useState } from "react";
 import { ListItem } from "../../types/shared";
 import {
@@ -15,6 +16,7 @@ import EditTextDialog from "../EditTextDialog/EditTextDialog";
 
 export interface EditListItemDialogProps {
   list: ListItem[];
+  // Maybe also add uneditableItems to make this more reusable
   unremovableItems: ListItem[];
   dialogTitle: string;
   dialogDescription?: string;
@@ -49,7 +51,9 @@ function EditListItemDialog(props: EditListItemDialogProps) {
         handleAddListItem(editedText);
       } else {
         const foundInd = list?.findIndex((item) => item.id === editItem.id);
-        const sameNames = list?.filter((item) => item.name === editedText);
+        const sameNames = list?.filter(
+          (item) => item.name.toLowerCase() === editedText.toLowerCase()
+        );
         // if there are results with the same name
         // and they're not the one the user is editing
         if (
@@ -70,6 +74,15 @@ function EditListItemDialog(props: EditListItemDialogProps) {
   };
 
   const handleAddListItem = (text: string): void => {
+    const sameNames = list?.filter(
+      (item) => item.name.toLowerCase() === text.toLowerCase()
+    );
+    // if there are results with the same name
+    if (!!sameNames && sameNames.length > 0) {
+      // display error and return
+      return;
+    }
+
     const tempList = list ?? [];
     const maxIndex = Math.max(...tempList.map((item) => item.id), 0);
     tempList?.push({
@@ -77,7 +90,7 @@ function EditListItemDialog(props: EditListItemDialogProps) {
       name: text,
       isRemovable: true,
     });
-    setList({ ...tempList });
+    setList([...tempList]);
   };
 
   const handleDeleteListItem = (listItem: RemovableListItem): void => {
@@ -90,7 +103,7 @@ function EditListItemDialog(props: EditListItemDialogProps) {
     }
     let tempList = list;
     tempList = tempList.filter((item) => item.id !== listItem.id);
-    setList({ ...tempList });
+    setList([...tempList]);
   };
 
   useEffect(() => {
@@ -147,38 +160,42 @@ function EditListItemDialog(props: EditListItemDialogProps) {
         </DialogTitle>
         <DialogContent dividers={true} id="list-item-edit-dialog-content">
           <Divider />
-          {/* list of existing questions */}
+          {/* list of items */}
           <div className="list-item-dialog-content-list">
-            {(list ?? []).map((item, index) => (
-              <div
-                className="list-item-edit-dialog-content-item-row row"
-                key={index}
-              >
-                <Typography
-                  className="list-item-edit-dialog-content-list-item-row-text"
-                  variant="body1"
-                  component="div"
-                >
-                  {item.name}
-                </Typography>
-                <div className="list-item-edit-dialog-content-list-item-row-end-actions">
-                  <IconButton
-                    aria-label="edit text"
-                    color="warning"
-                    onClick={() => handleOpenEditTextDialog(item)}
+            {!!list &&
+              list.map((item, index) => (
+                <div key={index}>
+                  <div
+                    className="list-item-edit-dialog-content-item-row row"
+                    //   key={index}
                   >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    aria-label="delete item"
-                    color="error"
-                    onClick={() => handleDeleteListItem(item)}
-                  >
-                    <Delete />
-                  </IconButton>
+                    <Typography
+                      className="list-item-edit-dialog-content-list-item-row-text"
+                      variant="body1"
+                      component="div"
+                    >
+                      {item.name}
+                    </Typography>
+                    <div className="list-item-edit-dialog-content-list-item-row-end-actions">
+                      <IconButton
+                        aria-label="edit text"
+                        color="warning"
+                        onClick={() => handleOpenEditTextDialog(item)}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        aria-label="delete item"
+                        color="error"
+                        onClick={() => handleDeleteListItem(item)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </div>
+                  </div>
+                  <Divider />
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
           {/* footer close & submit */}
         </DialogContent>
@@ -186,7 +203,11 @@ function EditListItemDialog(props: EditListItemDialogProps) {
           <Button onClick={() => props.handleDialogClose()}>Cancel</Button>
           <Button
             variant="contained"
-            onClick={() => props.handleDialogClose(list)}
+            onClick={() =>
+              props.handleDialogClose(
+                list?.map((item) => ({ id: item.id, name: item.name }))
+              )
+            }
           >
             Submit
           </Button>

@@ -20,3 +20,10 @@
 .grid-toolbar-field-row-inner {
   align-content: center;
 }
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%
+}
