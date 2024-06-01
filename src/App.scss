@@ -8,3 +8,15 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
+.grid-toolbar-field-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.grid-toolbar-field-row-inner {
+  align-content: center;
+}
