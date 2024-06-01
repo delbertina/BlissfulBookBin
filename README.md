@@ -1,4 +1,11 @@
-# Getting Started with Create React App
+# Blissful Book Bin
+A helpful book cataloging application build with React, MUI & Sass.
+
+The user can CRUD books, tags, and categories with notifications that the actions were successful or not.
+
+##
+
+## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
