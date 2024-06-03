@@ -3,3 +3,24 @@
   flex-direction: row;
   justify-content: space-between;
 }
+
+#explore-dialog-content {
+  background-color: #dddddd;
+}
+
+.explore-dialog-content-list-header,
+.explore-dialog-content-row {
+  justify-content: space-between;
+}
+
+.explore-dialog-content-row-text {
+  flex-grow: 1;
+  align-self: center;
+}
+
+.explore-dialog-content-row {
+  cursor: pointer;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}

@@ -1,3 +1,4 @@
+import "./ExploreBooksDialog.scss";
 import { Add, Delete } from "@mui/icons-material";
 import {
   Dialog,
@@ -11,18 +12,44 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ExploreBook } from "../../types/book";
+import axios from "axios";
 
 export interface ExploreBooksDialogProps {
   isDialogOpen: boolean;
-  handleDialogClose: (newBooks?: ExploreBook[]) => void;
+  handleAddBook: (book: ExploreBook) => void;
+  handleDialogClose: () => void;
 }
 
 function ExploreBooksDialog(props: ExploreBooksDialogProps) {
   const [newBooks, setNewBooks] = useState<Array<ExploreBook>>([]);
 
-  const handleAddNewBooks = () => {};
+  const handleAddBook = (book: ExploreBook): void => {
+    props.handleAddBook(book);
+    const tempBooks = newBooks.filter((item) => item.title !== book.title);
+    setNewBooks([...tempBooks]);
+  };
 
-  const handleDeleteNewBook = (index: number) => {
+  const handleAddNewBooks = (): void => {
+    // call the api to add new books
+    axios
+      .get("https://fakerapi.it/api/v1/books?_quantity=10")
+      .then((res) => {
+        if (
+          !!res &&
+          !!res.data &&
+          !!res.data.data &&
+          Array.isArray(res.data.data)
+        ) {
+          setNewBooks([...newBooks, ...res.data.data]);
+        }
+      })
+      .catch((error) =>
+        // make error toast
+        console.log("Error while fetching new books: ", error)
+      );
+  };
+
+  const handleDeleteNewBook = (index: number): void => {
     const tempBooks = newBooks.filter((book, i) => i !== index);
     setNewBooks([...tempBooks]);
   };
@@ -58,20 +85,29 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
           </IconButton>
         </div>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent id="explore-dialog-content">
         {/* list of items */}
         <div className="export-dialog-content-list">
           {!!newBooks &&
             newBooks.map((book, index) => (
               <div key={index}>
                 <div className="explore-dialog-content-row row">
-                  <Typography
-                    className="explore-dialog-content-row-text"
-                    variant="body1"
-                    component="div"
-                  >
-                    {book.title} - By: {book.author}
-                  </Typography>
+                  <div className="explore-dialog-content-row-start-actions row">
+                    <IconButton
+                      aria-label="add book"
+                      color="success"
+                      onClick={() => handleAddBook(book)}
+                    >
+                      <Add />
+                    </IconButton>
+                    <Typography
+                      className="explore-dialog-content-row-text"
+                      variant="body1"
+                      component="div"
+                    >
+                      {book.title} - By: {book.author}
+                    </Typography>
+                  </div>
                   <div className="explore-dialog-content-row-end-actions">
                     <IconButton
                       aria-label="delete new book"
@@ -88,13 +124,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => props.handleDialogClose()}>Cancel</Button>
-        <Button
-          variant="contained"
-          onClick={() => props.handleDialogClose(newBooks)}
-        >
-          Submit
-        </Button>
+        <Button onClick={() => props.handleDialogClose()}>Close</Button>
       </DialogActions>
     </Dialog>
   );
