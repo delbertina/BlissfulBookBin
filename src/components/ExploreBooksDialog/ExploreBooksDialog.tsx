@@ -29,7 +29,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
     setNewBooks([...tempBooks]);
   };
 
-  const handleAddNewBooks = (): void => {
+  const handleAddNewBooks = (clear?: boolean): void => {
     // call the api to add new books
     axios
       .get("https://fakerapi.it/api/v1/books?_quantity=10")
@@ -40,7 +40,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
           !!res.data.data &&
           Array.isArray(res.data.data)
         ) {
-          setNewBooks([...newBooks, ...res.data.data]);
+          setNewBooks(clear ? res.data.data : [...newBooks, ...res.data.data]);
         }
       })
       .catch((error) =>
@@ -55,7 +55,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
   };
 
   useEffect(() => {
-    handleAddNewBooks();
+    handleAddNewBooks(true);
   }, []);
 
   return (
