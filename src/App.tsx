@@ -16,22 +16,44 @@ import {
 } from "@mui/material";
 import "./App.scss";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
-import { Add, Edit } from "@mui/icons-material";
+import { Add, Edit, Explore } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
 import { Books, NewBook } from "./data/books";
-import { Book } from "./types/book";
+import { Book, ExploreBook, ImportExploreBook } from "./types/book";
 import IndexedChip from "./components/IndexedChip/IndexedChip";
 import { Categories } from "./data/categories";
 import { ListItem } from "./types/shared";
 import { Tags } from "./data/tags";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
+import ExploreBooksDialog from "./components/ExploreBooksDialog/ExploreBooksDialog";
+
+const enum LOCAL_DATA {
+  BOOK = "book_data",
+  CATEGORY = "cat_data",
+  TAG = "tag_data",
+}
 
 function App() {
-  const [books, setBooks] = useState<Array<Book>>(Books);
-  const [filteredBooks, setFilteredBooks] = useState<Array<Book>>(Books);
-  const [categories, setCategories] = useState<Array<ListItem>>(Categories);
-  const [tags, setTags] = useState<Array<ListItem>>(Tags);
+  const [books, setBooks] = useState<Array<Book>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.BOOK) ?? JSON.stringify(Books)
+      ) ?? Books
+  );
+  const [filteredBooks, setFilteredBooks] = useState<Array<Book>>([]);
+  const [categories, setCategories] = useState<Array<ListItem>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.CATEGORY) ?? JSON.stringify(Categories)
+      ) ?? Categories
+  );
+  const [tags, setTags] = useState<Array<ListItem>>(
+    () =>
+      JSON.parse(
+        localStorage.getItem(LOCAL_DATA.TAG) ?? JSON.stringify(Tags)
+      ) ?? Tags
+  );
   const [filteredCategories, setFilteredCategories] = useState<Array<number>>(
     []
   );
@@ -44,6 +66,8 @@ function App() {
   const [isEditCatDialogOpen, setIsEditCatDialogOpen] =
     useState<boolean>(false);
   const [isEditTagDialogOpen, setIsEditTagDialogOpen] =
+    useState<boolean>(false);
+  const [isExploreBooksDialogOpen, setIsExploreBooksDialogOpen] =
     useState<boolean>(false);
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
   const [snackbarMsg, setSnackbarMsg] = useState<string>("");
@@ -188,16 +212,16 @@ function App() {
   };
 
   const handleBookDelete = (book: Book): void => {
-    const foundIndex = books.findIndex(item => item.id === book.id);
+    const foundIndex = books.findIndex((item) => item.id === book.id);
     if (foundIndex === -1) {
       // error deleting book
       handleSnackbarOpen("Error! Book not found!");
     } else {
-      const tempBooks = books.filter(item => item.id !== book.id);
+      const tempBooks = books.filter((item) => item.id !== book.id);
       setBooks([...tempBooks]);
       handleSnackbarOpen("Book successfully deleted");
     }
-  }
+  };
 
   const handleEditCatOpen = (): void => {
     const inUseCats = new Set(books.flatMap((item) => item.categories));
@@ -229,6 +253,18 @@ function App() {
     setIsEditTagDialogOpen(false);
   };
 
+  const handleExploreBookOpen = (): void => {
+    setIsExploreBooksDialogOpen(true);
+  };
+
+  const handleExploreBookClose = (): void => {
+    setIsExploreBooksDialogOpen(false);
+  };
+
+  const handleExploreBookAdd = (newBook: ExploreBook): void => {
+    setBooks([ImportExploreBook(newBook, getNextBookIndex()), ...books]);
+  };
+
   const getNextBookIndex = (): number => {
     const maxInd = Math.max(...books.map((book) => book.id), 0);
     return maxInd + 1;
@@ -253,7 +289,19 @@ function App() {
 
   useEffect(() => {
     updateFilteredBooks(filteredCategories, filteredTags);
-  }, [books, filteredCategories, filteredTags])
+  }, [books, filteredCategories, filteredTags]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.BOOK, JSON.stringify(books));
+  }, [books]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.CATEGORY, JSON.stringify(categories));
+  }, [categories]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_DATA.TAG, JSON.stringify(tags));
+  }, [tags]);
 
   return (
     <div>
@@ -263,6 +311,9 @@ function App() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Blissful Book Bin
             </Typography>
+            <IconButton color="warning" onClick={() => handleExploreBookOpen()}>
+              <Explore />
+            </IconButton>
             <Tooltip title="Add Book">
               <IconButton color="inherit" onClick={() => handleEditBookOpen()}>
                 <Add />
@@ -399,6 +450,12 @@ function App() {
         handleDialogClose={(returnList?: ListItem[]) =>
           handleEditTagClose(returnList)
         }
+      />
+      {/* Explore Books */}
+      <ExploreBooksDialog
+        handleAddBook={(book: ExploreBook) => handleExploreBookAdd(book)}
+        isDialogOpen={isExploreBooksDialogOpen}
+        handleDialogClose={() => handleExploreBookClose()}
       />
       {/* Snackbar */}
       <Snackbar
