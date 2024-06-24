@@ -3,6 +3,16 @@ A helpful book cataloging application build with React, MUI & Sass.
 
 The user can CRUD books, tags, and categories with notifications that the actions were successful or not.
 
+## Main page with books table display
+![S7no9OY](https://github.com/delbertina/BlissfulBookBin/assets/6349928/2a4d3bb2-a678-40da-a55f-1e29910bbccf)
+
+## Add & Edit books with a modal form
+![I9WCizO](https://github.com/delbertina/BlissfulBookBin/assets/6349928/f1e8fd9f-09c2-4665-8ed9-bd69daceb26d)
+
+## Explore new books to add from the Faker API
+![9v6Y9Qc](https://github.com/delbertina/BlissfulBookBin/assets/6349928/51d26fed-fd9a-488b-a04e-8089648f39a3)
+
+
 ##
 
 ## Getting Started with Create React App
