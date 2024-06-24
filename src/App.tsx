@@ -17,49 +17,44 @@ import {
 import "./App.scss";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { Add, Edit, Explore } from "@mui/icons-material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
-import { Books, NewBook } from "./data/books";
+import { NewBook } from "./data/books";
 import { Book, ExploreBook, ImportExploreBook } from "./types/book";
 import IndexedChip from "./components/IndexedChip/IndexedChip";
-import { Categories } from "./data/categories";
 import { ListItem } from "./types/shared";
-import { Tags } from "./data/tags";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
 import ExploreBooksDialog from "./components/ExploreBooksDialog/ExploreBooksDialog";
-
-const enum LOCAL_DATA {
-  BOOK = "book_data",
-  CATEGORY = "cat_data",
-  TAG = "tag_data",
-}
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addBook,
+  categories,
+  deleteBook,
+  filteredBooks,
+  filteredCategories,
+  filteredTags,
+  nextBookInd,
+  setCats,
+  setFilterCats,
+  setFilterTags,
+  setTags,
+  tags,
+  unremovableCats,
+  unremovableTags,
+  updateBook,
+} from "./store/book";
 
 function App() {
-  const [books, setBooks] = useState<Array<Book>>(
-    () =>
-      JSON.parse(
-        localStorage.getItem(LOCAL_DATA.BOOK) ?? JSON.stringify(Books)
-      ) ?? Books
-  );
-  const [filteredBooks, setFilteredBooks] = useState<Array<Book>>([]);
-  const [categories, setCategories] = useState<Array<ListItem>>(
-    () =>
-      JSON.parse(
-        localStorage.getItem(LOCAL_DATA.CATEGORY) ?? JSON.stringify(Categories)
-      ) ?? Categories
-  );
-  const [tags, setTags] = useState<Array<ListItem>>(
-    () =>
-      JSON.parse(
-        localStorage.getItem(LOCAL_DATA.TAG) ?? JSON.stringify(Tags)
-      ) ?? Tags
-  );
-  const [filteredCategories, setFilteredCategories] = useState<Array<number>>(
-    []
-  );
-  const [filteredTags, setFilteredTags] = useState<Array<number>>([]);
-  const [unremovableCats, setUnremovableCats] = useState<Array<ListItem>>([]);
-  const [unremovableTags, setUnremovableTags] = useState<Array<ListItem>>([]);
+  const dispatch = useDispatch();
+  
+  const storeBooks = useSelector(filteredBooks);
+  const storeCats = useSelector(categories);
+  const storeTags = useSelector(tags);
+  const storeNextBookInd = useSelector(nextBookInd);
+  const storeFilCats = useSelector(filteredCategories);
+  const storeFilTags = useSelector(filteredTags);
+  const storeUnremCats = useSelector(unremovableCats);
+  const storeUnremTags = useSelector(unremovableTags);
   const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
   const [isEditBookDialogOpen, setIsEditBookDialogOpen] =
     useState<boolean>(false);
@@ -107,7 +102,7 @@ function App() {
         return (
           <>
             {params.value.map((value: number) => (
-              <IndexedChip key={value} index={value} list={categories} />
+              <IndexedChip key={value} index={value} list={storeCats} />
             ))}
           </>
         );
@@ -122,7 +117,7 @@ function App() {
         return (
           <>
             {params.value.map((value: number) => (
-              <IndexedChip key={value} index={value} list={tags} />
+              <IndexedChip key={value} index={value} list={storeTags} />
             ))}
           </>
         );
@@ -132,7 +127,7 @@ function App() {
   ];
 
   const handleFilteredCategoriesChange = (
-    event: SelectChangeEvent<typeof filteredCategories>
+    event: SelectChangeEvent<Array<number>>
   ) => {
     const {
       target: { value },
@@ -141,12 +136,11 @@ function App() {
       typeof value === "string"
         ? value.split(",").map((item) => parseInt(item))
         : value;
-    // updateFilteredBooks(selectedCategories, filteredTags);
-    setFilteredCategories(selectedCategories);
+    dispatch(setFilterCats(selectedCategories));
   };
 
   const handleFilteredTagsChange = (
-    event: SelectChangeEvent<typeof filteredTags>
+    event: SelectChangeEvent<Array<number>>
   ) => {
     const {
       target: { value },
@@ -155,20 +149,7 @@ function App() {
       typeof value === "string"
         ? value.split(",").map((item) => parseInt(item))
         : value;
-    // updateFilteredBooks(filteredCategories, selectedTags);
-    setFilteredTags(selectedTags);
-  };
-
-  const updateFilteredBooks = (fCats: number[], fTags: number[]): void => {
-    setFilteredBooks(
-      books.filter(
-        (book) =>
-          (fTags.length === 0 ||
-            book.tags.find((tag) => fTags.indexOf(tag) > -1)) &&
-          (fCats.length === 0 ||
-            book.categories.find((cat) => fCats.indexOf(cat) > -1))
-      )
-    );
+    dispatch(setFilterTags(selectedTags));
   };
 
   const handleEditBookOpen = (id?: number): void => {
@@ -176,7 +157,9 @@ function App() {
     if (!id) {
       setCurrentEditBook(NewBook);
     } else {
-      const foundBook: Book | undefined = books.find((book) => book.id === id);
+      const foundBook: Book | undefined = storeBooks.find(
+        (book) => book.id === id
+      );
       if (!foundBook) {
         // If a truthy id was passed but it doesnt exist, display an error
         handleSnackbarOpen("Error! Existing book not found!");
@@ -192,17 +175,16 @@ function App() {
       // if new book
       if (book.id === 0) {
         const newBook = { ...book };
-        newBook.id = getNextBookIndex();
+        newBook.id = storeNextBookInd;
         // to keep the books in order by id should add it to the back
         // then the book maybe wouldn't show up on page 1 after adding
         // that wouldn't be user intuative
-        setBooks([newBook, ...books]);
+        dispatch(addBook(newBook));
         handleSnackbarOpen("New book successfully added!");
       } else {
         // Could find the book edited instead of filtering it out
         // If the book never existed, it'll still add it which is what we want
-        const filteredBooks = books.filter((oldBook) => oldBook.id !== book.id);
-        setBooks([book, ...filteredBooks]);
+        dispatch(updateBook(book));
         handleSnackbarOpen("Book successfully updated!");
       }
     }
@@ -212,42 +194,35 @@ function App() {
   };
 
   const handleBookDelete = (book: Book): void => {
-    const foundIndex = books.findIndex((item) => item.id === book.id);
+    const foundIndex = storeBooks.findIndex((item) => item.id === book.id);
     if (foundIndex === -1) {
       // error deleting book
       handleSnackbarOpen("Error! Book not found!");
     } else {
-      const tempBooks = books.filter((item) => item.id !== book.id);
-      setBooks([...tempBooks]);
+      dispatch(deleteBook(book));
       handleSnackbarOpen("Book successfully deleted");
     }
   };
 
   const handleEditCatOpen = (): void => {
-    const inUseCats = new Set(books.flatMap((item) => item.categories));
-    const filteredCats = categories.filter((item) => inUseCats.has(item.id));
-    setUnremovableCats(filteredCats);
     setIsEditCatDialogOpen(true);
   };
 
   const handleEditCatClose = (returnList?: ListItem[]): void => {
     if (!!returnList) {
-      setCategories(returnList);
+      dispatch(setCats(returnList));
       handleSnackbarOpen("Category list successfully updated!");
     }
     setIsEditCatDialogOpen(false);
   };
 
   const handleEditTagOpen = (): void => {
-    const inUseTags = new Set(books.flatMap((item) => item.tags));
-    const filteredTags = tags.filter((item) => inUseTags.has(item.id));
-    setUnremovableTags(filteredTags);
     setIsEditTagDialogOpen(true);
   };
 
   const handleEditTagClose = (returnList?: ListItem[]): void => {
     if (!!returnList) {
-      setTags(returnList);
+      dispatch(setTags(returnList));
       handleSnackbarOpen("Tag list successfully updated!");
     }
     setIsEditTagDialogOpen(false);
@@ -262,12 +237,7 @@ function App() {
   };
 
   const handleExploreBookAdd = (newBook: ExploreBook): void => {
-    setBooks([ImportExploreBook(newBook, getNextBookIndex()), ...books]);
-  };
-
-  const getNextBookIndex = (): number => {
-    const maxInd = Math.max(...books.map((book) => book.id), 0);
-    return maxInd + 1;
+    dispatch(addBook(ImportExploreBook(newBook)));
   };
 
   const handleSnackbarOpen = (message: string) => {
@@ -286,22 +256,6 @@ function App() {
     setSnackbarMsg("");
     setIsSnackbarOpen(false);
   };
-
-  useEffect(() => {
-    updateFilteredBooks(filteredCategories, filteredTags);
-  }, [books, filteredCategories, filteredTags]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_DATA.BOOK, JSON.stringify(books));
-  }, [books]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_DATA.CATEGORY, JSON.stringify(categories));
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_DATA.TAG, JSON.stringify(tags));
-  }, [tags]);
 
   return (
     <div>
@@ -340,7 +294,7 @@ function App() {
                   name="categories"
                   variant="outlined"
                   multiple
-                  value={filteredCategories}
+                  value={storeFilCats}
                   onChange={handleFilteredCategoriesChange}
                   input={
                     <OutlinedInput
@@ -354,13 +308,13 @@ function App() {
                         <IndexedChip
                           key={value}
                           index={value}
-                          list={categories}
+                          list={storeCats}
                         />
                       ))}
                     </Box>
                   )}
                 >
-                  {categories.map((category) => (
+                  {storeCats.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
                       {category.name}
                     </MenuItem>
@@ -381,7 +335,7 @@ function App() {
                   name="tags"
                   variant="outlined"
                   multiple
-                  value={filteredTags}
+                  value={storeFilTags}
                   onChange={handleFilteredTagsChange}
                   input={
                     <OutlinedInput
@@ -392,12 +346,16 @@ function App() {
                   renderValue={(selected: number[]) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                       {selected.map((value: number) => (
-                        <IndexedChip key={value} index={value} list={tags} />
+                        <IndexedChip
+                          key={value}
+                          index={value}
+                          list={storeTags}
+                        />
                       ))}
                     </Box>
                   )}
                 >
-                  {tags.map((category) => (
+                  {storeTags.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
                       {category.name}
                     </MenuItem>
@@ -416,23 +374,23 @@ function App() {
             }
             sx={{ backgroundColor: "lightgrey" }}
             columns={columns}
-            rows={filteredBooks}
+            rows={storeBooks}
           />
         </div>
       </div>
       {/* Edit Book */}
       <EditBookDialog
         book={currentEditBook}
-        categories={categories}
-        tags={tags}
+        categories={storeCats}
+        tags={storeTags}
         isDialogOpen={isEditBookDialogOpen}
         handleDialogClose={(book?: Book) => handleEditBookClose(book)}
         handleDeleteBook={(book: Book) => handleBookDelete(book)}
       />
       {/* Edit Categories */}
       <EditListItemDialog
-        list={categories}
-        unremovableItems={unremovableCats}
+        list={storeCats}
+        unremovableItems={storeUnremCats}
         isDialogOpen={isEditCatDialogOpen}
         dialogTitle="Edit Categories"
         dialogDescription="Add, update, and delete categories."
@@ -442,8 +400,8 @@ function App() {
       />
       {/* Edit Tags */}
       <EditListItemDialog
-        list={tags}
-        unremovableItems={unremovableTags}
+        list={storeTags}
+        unremovableItems={storeUnremTags}
         isDialogOpen={isEditTagDialogOpen}
         dialogTitle="Edit Tags"
         dialogDescription="Add, update, and delete tags."
