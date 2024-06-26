@@ -10,7 +10,8 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
+    {/* Suppress warnings about memorization to fix later, maybe*/}
+    <Provider store={store} stabilityCheck="never">
       <App />
     </Provider>
   </React.StrictMode>
