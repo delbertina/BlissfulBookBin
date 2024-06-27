@@ -4,24 +4,14 @@ import {
   IconButton,
   Typography,
   Tooltip,
-  Rating,
-  Select,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  Box,
-  MenuItem,
-  SelectChangeEvent,
   Snackbar,
 } from "@mui/material";
 import "./App.scss";
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
-import { Add, Edit, Explore } from "@mui/icons-material";
+import { Add, Explore } from "@mui/icons-material";
 import { useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
 import { NewBook } from "./data/books";
 import { Book, ExploreBook, ImportExploreBook } from "./types/book";
-import IndexedChip from "./components/IndexedChip/IndexedChip";
 import { ListItem } from "./types/shared";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
 import ExploreBooksDialog from "./components/ExploreBooksDialog/ExploreBooksDialog";
@@ -31,28 +21,24 @@ import {
   categories,
   deleteBook,
   filteredBooks,
-  filteredCategories,
-  filteredTags,
   nextBookInd,
   setCats,
-  setFilterCats,
-  setFilterTags,
   setTags,
   tags,
   unremovableCats,
   unremovableTags,
   updateBook,
 } from "./store/book";
+import BookTable from "./components/BookTable/BookTable";
 
 function App() {
   const dispatch = useDispatch();
-  
+
   const storeBooks = useSelector(filteredBooks);
   const storeCats = useSelector(categories);
   const storeTags = useSelector(tags);
   const storeNextBookInd = useSelector(nextBookInd);
-  const storeFilCats = useSelector(filteredCategories);
-  const storeFilTags = useSelector(filteredTags);
+
   const storeUnremCats = useSelector(unremovableCats);
   const storeUnremTags = useSelector(unremovableTags);
   const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
@@ -66,91 +52,6 @@ function App() {
     useState<boolean>(false);
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
   const [snackbarMsg, setSnackbarMsg] = useState<string>("");
-
-  const columns: GridColDef[] = [
-    {
-      field: "title",
-      headerName: "Title",
-      flex: 2,
-    },
-    {
-      field: "author",
-      headerName: "Author",
-      flex: 1,
-    },
-    {
-      field: "genre",
-      headerName: "Genre",
-      flex: 1,
-    },
-    {
-      field: "rating",
-      headerName: "Rating",
-      renderCell: (params) => {
-        return <Rating name="hover-feedback" value={params.value} readOnly />;
-      },
-      width: 160,
-      align: "left",
-      headerAlign: "left",
-      type: "number",
-    },
-    {
-      field: "categories",
-      headerName: "Categories",
-      filterable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            {params.value.map((value: number) => (
-              <IndexedChip key={value} index={value} list={storeCats} />
-            ))}
-          </>
-        );
-      },
-      flex: 1,
-    },
-    {
-      field: "tags",
-      headerName: "Tags",
-      filterable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            {params.value.map((value: number) => (
-              <IndexedChip key={value} index={value} list={storeTags} />
-            ))}
-          </>
-        );
-      },
-      flex: 1,
-    },
-  ];
-
-  const handleFilteredCategoriesChange = (
-    event: SelectChangeEvent<Array<number>>
-  ) => {
-    const {
-      target: { value },
-    } = event;
-    const selectedCategories =
-      typeof value === "string"
-        ? value.split(",").map((item) => parseInt(item))
-        : value;
-    dispatch(setFilterCats(selectedCategories));
-  };
-
-  const handleFilteredTagsChange = (
-    event: SelectChangeEvent<Array<number>>
-  ) => {
-    const {
-      target: { value },
-    } = event;
-    const selectedTags =
-      typeof value === "string"
-        ? value.split(",").map((item) => parseInt(item))
-        : value;
-    dispatch(setFilterTags(selectedTags));
-  };
 
   const handleEditBookOpen = (id?: number): void => {
     // If the id is falsey (including 0) handle as a new book
@@ -204,20 +105,12 @@ function App() {
     }
   };
 
-  const handleEditCatOpen = (): void => {
-    setIsEditCatDialogOpen(true);
-  };
-
   const handleEditCatClose = (returnList?: ListItem[]): void => {
     if (!!returnList) {
       dispatch(setCats(returnList));
       handleSnackbarOpen("Category list successfully updated!");
     }
     setIsEditCatDialogOpen(false);
-  };
-
-  const handleEditTagOpen = (): void => {
-    setIsEditTagDialogOpen(true);
   };
 
   const handleEditTagClose = (returnList?: ListItem[]): void => {
@@ -277,106 +170,11 @@ function App() {
         </AppBar>
       </div>
       <div className="app-content">
-        <AppBar position="static">
-          <Toolbar>
-            <div className="grid-toolbar-field-row">
-              <div className="grid-toolbar-field-row-inner">
-                <Typography variant="h6">Categories</Typography>
-              </div>
-              <div className="grid-toolbar-field-row-inner">
-                <IconButton color="warning" onClick={() => handleEditCatOpen()}>
-                  <Edit />
-                </IconButton>
-              </div>
-              <FormControl style={{ flexGrow: 1 }}>
-                <InputLabel>Filter Categories</InputLabel>
-                <Select
-                  name="categories"
-                  variant="outlined"
-                  multiple
-                  value={storeFilCats}
-                  onChange={handleFilteredCategoriesChange}
-                  input={
-                    <OutlinedInput
-                      sx={{ background: "white" }}
-                      label="Filter Categories"
-                    />
-                  }
-                  renderValue={(selected: number[]) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value: number) => (
-                        <IndexedChip
-                          key={value}
-                          index={value}
-                          list={storeCats}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {storeCats.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <div className="grid-toolbar-field-row-inner">
-                <Typography variant="h6">Tags</Typography>
-              </div>
-              <div className="grid-toolbar-field-row-inner">
-                <IconButton color="warning" onClick={() => handleEditTagOpen()}>
-                  <Edit />
-                </IconButton>
-              </div>
-              <FormControl style={{ flexGrow: 1 }}>
-                <InputLabel>Filter Tags</InputLabel>
-                <Select
-                  name="tags"
-                  variant="outlined"
-                  multiple
-                  value={storeFilTags}
-                  onChange={handleFilteredTagsChange}
-                  input={
-                    <OutlinedInput
-                      sx={{ background: "white" }}
-                      label="Filter Tags"
-                    />
-                  }
-                  renderValue={(selected: number[]) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value: number) => (
-                        <IndexedChip
-                          key={value}
-                          index={value}
-                          list={storeTags}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {storeTags.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-          </Toolbar>
-        </AppBar>
-
-        <div style={{ height: "80vh", width: "100%" }}>
-          <DataGrid
-            disableRowSelectionOnClick
-            onRowClick={(event: GridRowParams) =>
-              handleEditBookOpen(event.row.id)
-            }
-            sx={{ backgroundColor: "lightgrey" }}
-            columns={columns}
-            rows={storeBooks}
-          />
-        </div>
+        <BookTable
+          handleEditBookOpen={(id: number) => handleEditBookOpen(id)}
+          setIsEditCatDialogOpen={() => setIsEditCatDialogOpen(true)}
+          setIsEditTagDialogOpen={() => setIsEditTagDialogOpen(true)}
+        />
       </div>
       {/* Edit Book */}
       <EditBookDialog
