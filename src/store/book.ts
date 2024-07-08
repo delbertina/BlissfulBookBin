@@ -41,8 +41,6 @@ export const bookSlice = createSlice({
     categories: (state): ListItem[] => state.categories,
     filteredCategories: (state): number[] => state.filterCats,
     tags: (state): ListItem[] => state.tags,
-    nextBookInd: (state): number =>
-      Math.max(...state.books.map((book) => book.id), 0) + 1,
     filteredTags: (state): number[] => state.filterTags,
     filteredBooks: (state): Book[] =>
       state.books.filter(
@@ -67,6 +65,10 @@ export const bookSlice = createSlice({
   },
   reducers: {
     addBook: (state, action: PayloadAction<Book>) => {
+      if (action.payload.id === 0) {
+        const nextBookInd = Math.max(...state.books.map((book) => book.id), 0) + 1
+        action.payload.id = nextBookInd;
+      }
       setLocalBooks([...state.books, action.payload]);
       state.books.push(action.payload);
     },
@@ -105,7 +107,6 @@ export const {
   categories,
   filteredCategories,
   tags,
-  nextBookInd,
   filteredTags,
   filteredBooks,
   unremovableCats,

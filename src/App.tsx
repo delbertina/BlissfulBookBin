@@ -12,7 +12,7 @@ import { useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
 import { NewBook } from "./data/books";
 import { Book, ExploreBook, ImportExploreBook } from "./types/book";
-import { ListItem } from "./types/shared";
+import { DIALOG_ITEM, ListItem } from "./types/shared";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
 import ExploreBooksDialog from "./components/ExploreBooksDialog/ExploreBooksDialog";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,7 +21,6 @@ import {
   categories,
   deleteBook,
   filteredBooks,
-  nextBookInd,
   setCats,
   setTags,
   tags,
@@ -37,19 +36,11 @@ function App() {
   const storeBooks = useSelector(filteredBooks);
   const storeCats = useSelector(categories);
   const storeTags = useSelector(tags);
-  const storeNextBookInd = useSelector(nextBookInd);
 
   const storeUnremCats = useSelector(unremovableCats);
   const storeUnremTags = useSelector(unremovableTags);
   const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
-  const [isEditBookDialogOpen, setIsEditBookDialogOpen] =
-    useState<boolean>(false);
-  const [isEditCatDialogOpen, setIsEditCatDialogOpen] =
-    useState<boolean>(false);
-  const [isEditTagDialogOpen, setIsEditTagDialogOpen] =
-    useState<boolean>(false);
-  const [isExploreBooksDialogOpen, setIsExploreBooksDialogOpen] =
-    useState<boolean>(false);
+  const [currentDialog, setCurrentDialog] = useState<DIALOG_ITEM | null>(null);
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
   const [snackbarMsg, setSnackbarMsg] = useState<string>("");
 
@@ -68,19 +59,17 @@ function App() {
       }
       setCurrentEditBook(foundBook);
     }
-    setIsEditBookDialogOpen(true);
+    setCurrentDialog(DIALOG_ITEM.BOOK_EDIT);
   };
 
   const handleEditBookClose = (book?: Book): void => {
     if (!!book) {
       // if new book
       if (book.id === 0) {
-        const newBook = { ...book };
-        newBook.id = storeNextBookInd;
         // to keep the books in order by id should add it to the back
         // then the book maybe wouldn't show up on page 1 after adding
         // that wouldn't be user intuative
-        dispatch(addBook(newBook));
+        dispatch(addBook(book));
         handleSnackbarOpen("New book successfully added!");
       } else {
         // Could find the book edited instead of filtering it out
@@ -89,7 +78,7 @@ function App() {
         handleSnackbarOpen("Book successfully updated!");
       }
     }
-    setIsEditBookDialogOpen(false);
+    setCurrentDialog(null);
     // If there's always a book here, don't have to check if undefined
     setCurrentEditBook(NewBook);
   };
@@ -110,7 +99,7 @@ function App() {
       dispatch(setCats(returnList));
       handleSnackbarOpen("Category list successfully updated!");
     }
-    setIsEditCatDialogOpen(false);
+    setCurrentDialog(null);
   };
 
   const handleEditTagClose = (returnList?: ListItem[]): void => {
@@ -118,15 +107,15 @@ function App() {
       dispatch(setTags(returnList));
       handleSnackbarOpen("Tag list successfully updated!");
     }
-    setIsEditTagDialogOpen(false);
+    setCurrentDialog(null);
   };
 
   const handleExploreBookOpen = (): void => {
-    setIsExploreBooksDialogOpen(true);
+    setCurrentDialog(DIALOG_ITEM.BOOK_EXPLORE);
   };
 
   const handleExploreBookClose = (): void => {
-    setIsExploreBooksDialogOpen(false);
+    setCurrentDialog(null);
   };
 
   const handleExploreBookAdd = (newBook: ExploreBook): void => {
@@ -172,8 +161,10 @@ function App() {
       <div className="app-content">
         <BookTable
           handleEditBookOpen={(id: number) => handleEditBookOpen(id)}
-          setIsEditCatDialogOpen={() => setIsEditCatDialogOpen(true)}
-          setIsEditTagDialogOpen={() => setIsEditTagDialogOpen(true)}
+          setIsEditCatDialogOpen={() =>
+            setCurrentDialog(DIALOG_ITEM.CATEGORY_EDIT)
+          }
+          setIsEditTagDialogOpen={() => setCurrentDialog(DIALOG_ITEM.TAG_EDIT)}
         />
       </div>
       {/* Edit Book */}
@@ -181,7 +172,7 @@ function App() {
         book={currentEditBook}
         categories={storeCats}
         tags={storeTags}
-        isDialogOpen={isEditBookDialogOpen}
+        isDialogOpen={currentDialog === DIALOG_ITEM.BOOK_EDIT}
         handleDialogClose={(book?: Book) => handleEditBookClose(book)}
         handleDeleteBook={(book: Book) => handleBookDelete(book)}
       />
@@ -189,7 +180,7 @@ function App() {
       <EditListItemDialog
         list={storeCats}
         unremovableItems={storeUnremCats}
-        isDialogOpen={isEditCatDialogOpen}
+        isDialogOpen={currentDialog === DIALOG_ITEM.CATEGORY_EDIT}
         dialogTitle="Edit Categories"
         dialogDescription="Add, update, and delete categories."
         handleDialogClose={(returnList?: ListItem[]) =>
@@ -200,7 +191,7 @@ function App() {
       <EditListItemDialog
         list={storeTags}
         unremovableItems={storeUnremTags}
-        isDialogOpen={isEditTagDialogOpen}
+        isDialogOpen={currentDialog === DIALOG_ITEM.TAG_EDIT}
         dialogTitle="Edit Tags"
         dialogDescription="Add, update, and delete tags."
         handleDialogClose={(returnList?: ListItem[]) =>
@@ -210,7 +201,7 @@ function App() {
       {/* Explore Books */}
       <ExploreBooksDialog
         handleAddBook={(book: ExploreBook) => handleExploreBookAdd(book)}
-        isDialogOpen={isExploreBooksDialogOpen}
+        isDialogOpen={currentDialog === DIALOG_ITEM.BOOK_EXPLORE}
         handleDialogClose={() => handleExploreBookClose()}
       />
       {/* Snackbar */}
