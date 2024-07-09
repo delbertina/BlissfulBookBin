@@ -64,15 +64,12 @@ export const bookSlice = createSlice({
     },
   },
   reducers: {
-    addBook: (state, action: PayloadAction<Book>) => {
+    updateBook: (state, action: PayloadAction<Book>) => {
+      // if new book, update the ID
       if (action.payload.id === 0) {
         const nextBookInd = Math.max(...state.books.map((book) => book.id), 0) + 1
         action.payload.id = nextBookInd;
       }
-      setLocalBooks([...state.books, action.payload]);
-      state.books.push(action.payload);
-    },
-    updateBook: (state, action: PayloadAction<Book>) => {
       const filteredBooks = state.books.filter(
         (oldBook) => oldBook.id !== action.payload.id
       );
@@ -114,7 +111,6 @@ export const {
 } = bookSlice.selectors;
 // Action creators are generated for each case reducer function
 export const {
-  addBook,
   updateBook,
   deleteBook,
   setCats,

@@ -17,7 +17,6 @@ import EditListItemDialog from "./components/EditListItemDialog/EditListItemDial
 import ExploreBooksDialog from "./components/ExploreBooksDialog/ExploreBooksDialog";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addBook,
   categories,
   deleteBook,
   filteredBooks,
@@ -69,7 +68,7 @@ function App() {
         // to keep the books in order by id should add it to the back
         // then the book maybe wouldn't show up on page 1 after adding
         // that wouldn't be user intuative
-        dispatch(addBook(book));
+        dispatch(updateBook(book));
         handleSnackbarOpen("New book successfully added!");
       } else {
         // Could find the book edited instead of filtering it out
@@ -119,7 +118,7 @@ function App() {
   };
 
   const handleExploreBookAdd = (newBook: ExploreBook): void => {
-    dispatch(addBook(ImportExploreBook(newBook)));
+    dispatch(updateBook(ImportExploreBook(newBook)));
   };
 
   const handleSnackbarOpen = (message: string) => {
