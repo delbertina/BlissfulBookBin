@@ -20,6 +20,7 @@ const initialState: InitialState = {
     Tags,
   filterTags: [],
   filterCats: [],
+  snackbarMsg: "",
 };
 
 const setLocalBooks = (books: Book[]) => {
@@ -41,6 +42,7 @@ export const bookSlice = createSlice({
     categories: (state): ListItem[] => state.categories,
     filteredCategories: (state): number[] => state.filterCats,
     tags: (state): ListItem[] => state.tags,
+    snackbarMsg: (state): string => state.snackbarMsg,
     filteredTags: (state): number[] => state.filterTags,
     filteredBooks: (state): Book[] =>
       state.books.filter(
@@ -97,6 +99,9 @@ export const bookSlice = createSlice({
     setFilterTags: (state, action: PayloadAction<Array<number>>) => {
       state.filterTags = [...action.payload];
     },
+    openSnackbar: (state, action: PayloadAction<string>) => {
+      state.snackbarMsg = action.payload
+    }
   },
 });
 
@@ -104,6 +109,7 @@ export const {
   categories,
   filteredCategories,
   tags,
+  snackbarMsg,
   filteredTags,
   filteredBooks,
   unremovableCats,
@@ -117,6 +123,7 @@ export const {
   setTags,
   setFilterCats,
   setFilterTags,
+  openSnackbar,
 } = bookSlice.actions;
 // You must export the reducer as follows for it to be able to be read by the store.
 export default bookSlice.reducer;

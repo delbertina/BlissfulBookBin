@@ -7,6 +7,7 @@ interface InitialState {
   tags: Array<ListItem>;
   filterTags: Array<number>;
   filterCats: Array<number>;
+  snackbarMsg: string;
 }
 const UpdateBookAction: string = "Book";
 

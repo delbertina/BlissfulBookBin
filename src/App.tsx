@@ -20,8 +20,10 @@ import {
   categories,
   deleteBook,
   filteredBooks,
+  openSnackbar,
   setCats,
   setTags,
+  snackbarMsg,
   tags,
   unremovableCats,
   unremovableTags,
@@ -35,13 +37,11 @@ function App() {
   const storeBooks = useSelector(filteredBooks);
   const storeCats = useSelector(categories);
   const storeTags = useSelector(tags);
-
+  const storeSnackbar = useSelector(snackbarMsg);
   const storeUnremCats = useSelector(unremovableCats);
   const storeUnremTags = useSelector(unremovableTags);
   const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
   const [currentDialog, setCurrentDialog] = useState<DIALOG_ITEM | null>(null);
-  const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
-  const [snackbarMsg, setSnackbarMsg] = useState<string>("");
 
   const handleEditBookOpen = (id?: number): void => {
     // If the id is falsey (including 0) handle as a new book
@@ -122,8 +122,7 @@ function App() {
   };
 
   const handleSnackbarOpen = (message: string) => {
-    setSnackbarMsg(message);
-    setIsSnackbarOpen(true);
+    dispatch(openSnackbar(message));
   };
 
   const handleSnackbarClose = (
@@ -134,8 +133,7 @@ function App() {
       return;
     }
 
-    setSnackbarMsg("");
-    setIsSnackbarOpen(false);
+    dispatch(openSnackbar(""));
   };
 
   return (
@@ -205,10 +203,10 @@ function App() {
       />
       {/* Snackbar */}
       <Snackbar
-        open={isSnackbarOpen}
+        open={storeSnackbar !== ""}
         autoHideDuration={5000}
         onClose={handleSnackbarClose}
-        message={snackbarMsg}
+        message={storeSnackbar}
       />
     </div>
   );
