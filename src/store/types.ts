@@ -1,5 +1,5 @@
 import { Book } from "../types/book";
-import { ListItem } from "../types/shared";
+import { DIALOG_ITEM, ListItem } from "../types/shared";
 
 interface InitialState {
   books: Array<Book>;
@@ -8,6 +8,7 @@ interface InitialState {
   filterTags: Array<number>;
   filterCats: Array<number>;
   snackbarMsg: string;
+  currentDialog: DIALOG_ITEM | null;
 }
 const UpdateBookAction: string = "Book";
 

@@ -2,7 +2,7 @@ import { Books } from "../data/books";
 import { Categories } from "../data/categories";
 import { Tags } from "../data/tags";
 import { Book } from "../types/book";
-import { ListItem } from "../types/shared";
+import { DIALOG_ITEM, ListItem } from "../types/shared";
 import InitialState, { LOCAL_DATA } from "./types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
@@ -21,6 +21,7 @@ const initialState: InitialState = {
   filterTags: [],
   filterCats: [],
   snackbarMsg: "",
+  currentDialog: null
 };
 
 const setLocalBooks = (books: Book[]) => {
@@ -43,6 +44,7 @@ export const bookSlice = createSlice({
     filteredCategories: (state): number[] => state.filterCats,
     tags: (state): ListItem[] => state.tags,
     snackbarMsg: (state): string => state.snackbarMsg,
+    currentDialog: (state): DIALOG_ITEM | null => state.currentDialog,
     filteredTags: (state): number[] => state.filterTags,
     filteredBooks: (state): Book[] =>
       state.books.filter(
@@ -101,6 +103,9 @@ export const bookSlice = createSlice({
     },
     openSnackbar: (state, action: PayloadAction<string>) => {
       state.snackbarMsg = action.payload
+    },
+    setCurrentDialog: (state, action: PayloadAction<DIALOG_ITEM | null>) => {
+      state.currentDialog = action.payload
     }
   },
 });
@@ -110,6 +115,7 @@ export const {
   filteredCategories,
   tags,
   snackbarMsg,
+  currentDialog,
   filteredTags,
   filteredBooks,
   unremovableCats,
@@ -124,6 +130,7 @@ export const {
   setFilterCats,
   setFilterTags,
   openSnackbar,
+  setCurrentDialog
 } = bookSlice.actions;
 // You must export the reducer as follows for it to be able to be read by the store.
 export default bookSlice.reducer;
