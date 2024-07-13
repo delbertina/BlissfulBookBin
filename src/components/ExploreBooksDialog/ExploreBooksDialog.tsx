@@ -13,14 +13,17 @@ import {
 import { useEffect, useState } from "react";
 import { ExploreBook } from "../../types/book";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { currentDialog } from "../../store/book";
+import { DIALOG_ITEM } from "../../types/shared";
 
 export interface ExploreBooksDialogProps {
-  isDialogOpen: boolean;
   handleAddBook: (book: ExploreBook) => void;
   handleDialogClose: () => void;
 }
 
 function ExploreBooksDialog(props: ExploreBooksDialogProps) {
+  const storeDialog = useSelector(currentDialog);
   const [newBooks, setNewBooks] = useState<Array<ExploreBook>>([]);
 
   const handleAddBook = (book: ExploreBook): void => {
@@ -60,7 +63,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
 
   return (
     <Dialog
-      open={props.isDialogOpen}
+      open={storeDialog === DIALOG_ITEM.BOOK_EXPLORE}
       fullWidth={true}
       maxWidth={"md"}
       aria-labelledby="explore-dialog-title"

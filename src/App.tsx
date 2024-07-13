@@ -184,7 +184,6 @@ function App() {
       {/* Explore Books */}
       <ExploreBooksDialog
         handleAddBook={(book: ExploreBook) => handleExploreBookAdd(book)}
-        isDialogOpen={storeDialog === DIALOG_ITEM.BOOK_EXPLORE}
         handleDialogClose={() => handleExploreBookClose()}
       />
       {/* Snackbar */}
