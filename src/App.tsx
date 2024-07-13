@@ -8,9 +8,7 @@ import {
 } from "@mui/material";
 import "./App.scss";
 import { Add, Explore } from "@mui/icons-material";
-import { useState } from "react";
 import EditBookDialog from "./components/EditBookDialog/EditBookDialog";
-import { NewBook } from "./data/books";
 import { Book, ExploreBook, ImportExploreBook } from "./types/book";
 import { DIALOG_ITEM, ListItem } from "./types/shared";
 import EditListItemDialog from "./components/EditListItemDialog/EditListItemDialog";
@@ -24,6 +22,7 @@ import {
   openSnackbar,
   setCats,
   setCurrentDialog,
+  setCurrentEditInd,
   setTags,
   snackbarMsg,
   tags,
@@ -43,23 +42,9 @@ function App() {
   const storeDialog = useSelector(currentDialog);
   const storeUnremCats = useSelector(unremovableCats);
   const storeUnremTags = useSelector(unremovableTags);
-  const [currentEditBook, setCurrentEditBook] = useState<Book>(NewBook);
 
   const handleEditBookOpen = (id?: number): void => {
-    // If the id is falsey (including 0) handle as a new book
-    if (!id) {
-      setCurrentEditBook(NewBook);
-    } else {
-      const foundBook: Book | undefined = storeBooks.find(
-        (book) => book.id === id
-      );
-      if (!foundBook) {
-        // If a truthy id was passed but it doesnt exist, display an error
-        handleSnackbarOpen("Error! Existing book not found!");
-        return;
-      }
-      setCurrentEditBook(foundBook);
-    }
+    dispatch(setCurrentEditInd(id ?? 0))
     dispatch(setCurrentDialog(DIALOG_ITEM.BOOK_EDIT));
   };
 
@@ -81,7 +66,7 @@ function App() {
     }
     dispatch(setCurrentDialog(null));
     // If there's always a book here, don't have to check if undefined
-    setCurrentEditBook(NewBook);
+    dispatch(setCurrentEditInd(0));
   };
 
   const handleBookDelete = (book: Book): void => {
@@ -168,7 +153,6 @@ function App() {
       </div>
       {/* Edit Book */}
       <EditBookDialog
-        book={currentEditBook}
         categories={storeCats}
         tags={storeTags}
         isDialogOpen={storeDialog === DIALOG_ITEM.BOOK_EDIT}

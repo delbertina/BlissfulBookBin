@@ -9,6 +9,7 @@ interface InitialState {
   filterCats: Array<number>;
   snackbarMsg: string;
   currentDialog: DIALOG_ITEM | null;
+  currentEditInd: number;
 }
 const UpdateBookAction: string = "Book";
 

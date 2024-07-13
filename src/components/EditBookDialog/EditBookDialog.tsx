@@ -22,9 +22,10 @@ import IndexedChip from "../IndexedChip/IndexedChip";
 import { Book } from "../../types/book";
 import { ListItem } from "../../types/shared";
 import { Delete } from "@mui/icons-material";
+import { currentEditBook } from "../../store/book";
+import { useSelector } from "react-redux";
 
 export interface EditBookDialogProps {
-  book: Book;
   categories: ListItem[];
   tags: ListItem[];
   isDialogOpen: boolean;
@@ -33,13 +34,14 @@ export interface EditBookDialogProps {
 }
 
 function EditBookDialog(props: EditBookDialogProps) {
+  const storeEditBook = useSelector(currentEditBook);
   const [categories, setCategories] = useState<number[]>([]);
   const [tags, setTags] = useState<number[]>([]);
 
   useEffect(() => {
-    setCategories(props.book.categories);
-    setTags(props.book.tags);
-  }, [props.book]);
+    setCategories(storeEditBook.categories);
+    setTags(storeEditBook.tags);
+  }, [storeEditBook]);
 
   const handleCategoriesChange = (
     event: SelectChangeEvent<typeof categories>
@@ -67,7 +69,7 @@ function EditBookDialog(props: EditBookDialogProps) {
 
   const sanitizeFormData = (inputData: { [k: string]: any }): Book => {
     const returnBook: Book = {
-      id: props.book.id,
+      id: storeEditBook.id,
       title: inputData.title,
       author: inputData.author,
       genre: inputData.genre,
@@ -123,13 +125,13 @@ function EditBookDialog(props: EditBookDialogProps) {
             Update the information about a book.
           </Typography>
         </div>
-        {props.book.id !== 0 && (
+        {storeEditBook.id !== 0 && (
           <div>
             <Tooltip title="Delete Book">
             <IconButton
               aria-label="delete book"
               color="error"
-              onClick={() => props.handleDeleteBook(props.book)}
+              onClick={() => props.handleDeleteBook(storeEditBook)}
             >
               <Delete />
             </IconButton>
@@ -146,7 +148,7 @@ function EditBookDialog(props: EditBookDialogProps) {
           label="Title"
           name="title"
           variant="outlined"
-          defaultValue={props.book.title}
+          defaultValue={storeEditBook.title}
         />
         <br />
         <TextField
@@ -157,7 +159,7 @@ function EditBookDialog(props: EditBookDialogProps) {
           label="Author"
           name="author"
           variant="outlined"
-          defaultValue={props.book.author}
+          defaultValue={storeEditBook.author}
         />
         <br />
         <TextField
@@ -168,7 +170,7 @@ function EditBookDialog(props: EditBookDialogProps) {
           label="Genre"
           name="genre"
           variant="outlined"
-          defaultValue={props.book.genre}
+          defaultValue={storeEditBook.genre}
         />
         <br />
         {/* Maybe make this use the rating component to select */}
@@ -181,7 +183,7 @@ function EditBookDialog(props: EditBookDialogProps) {
           label="Rating"
           name="rating"
           variant="outlined"
-          defaultValue={props.book.rating}
+          defaultValue={storeEditBook.rating}
         />
         <br />
         {/* Maybe cheange this to use the autocomplete component with option to add new */}

@@ -1,4 +1,4 @@
-import { Books } from "../data/books";
+import { Books, NewBook } from "../data/books";
 import { Categories } from "../data/categories";
 import { Tags } from "../data/tags";
 import { Book } from "../types/book";
@@ -21,7 +21,8 @@ const initialState: InitialState = {
   filterTags: [],
   filterCats: [],
   snackbarMsg: "",
-  currentDialog: null
+  currentDialog: null,
+  currentEditInd: 0,
 };
 
 const setLocalBooks = (books: Book[]) => {
@@ -66,12 +67,22 @@ export const bookSlice = createSlice({
       const filteredTags = state.tags.filter((item) => inUseTag.has(item.id));
       return filteredTags;
     },
+    currentEditBook: (state): Book => {
+      const foundBook = state.books.find(
+        (book) => book.id === state.currentEditInd
+      );
+      if (!foundBook) {
+        return NewBook;
+      }
+      return foundBook;
+    },
   },
   reducers: {
     updateBook: (state, action: PayloadAction<Book>) => {
       // if new book, update the ID
       if (action.payload.id === 0) {
-        const nextBookInd = Math.max(...state.books.map((book) => book.id), 0) + 1
+        const nextBookInd =
+          Math.max(...state.books.map((book) => book.id), 0) + 1;
         action.payload.id = nextBookInd;
       }
       const filteredBooks = state.books.filter(
@@ -102,11 +113,14 @@ export const bookSlice = createSlice({
       state.filterTags = [...action.payload];
     },
     openSnackbar: (state, action: PayloadAction<string>) => {
-      state.snackbarMsg = action.payload
+      state.snackbarMsg = action.payload;
     },
     setCurrentDialog: (state, action: PayloadAction<DIALOG_ITEM | null>) => {
-      state.currentDialog = action.payload
-    }
+      state.currentDialog = action.payload;
+    },
+    setCurrentEditInd: (state, action: PayloadAction<number>) => {
+      state.currentEditInd = action.payload;
+    },
   },
 });
 
@@ -120,6 +134,7 @@ export const {
   filteredBooks,
   unremovableCats,
   unremovableTags,
+  currentEditBook,
 } = bookSlice.selectors;
 // Action creators are generated for each case reducer function
 export const {
@@ -130,7 +145,8 @@ export const {
   setFilterCats,
   setFilterTags,
   openSnackbar,
-  setCurrentDialog
+  setCurrentDialog,
+  setCurrentEditInd,
 } = bookSlice.actions;
 // You must export the reducer as follows for it to be able to be read by the store.
 export default bookSlice.reducer;
