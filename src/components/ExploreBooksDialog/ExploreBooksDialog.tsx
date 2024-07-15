@@ -1,5 +1,5 @@
 import "./ExploreBooksDialog.scss";
-import { Add, Delete } from "@mui/icons-material";
+import { Add, Delete, Refresh } from "@mui/icons-material";
 import {
   Dialog,
   DialogTitle,
@@ -32,7 +32,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
     setNewBooks([...tempBooks]);
   };
 
-  const handleAddNewBooks = (clear?: boolean): void => {
+  const handleRefreshBooks = (): void => {
     // call the api to add new books
     axios
       .get("https://fakerapi.it/api/v1/books?_quantity=10")
@@ -43,7 +43,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
           !!res.data.data &&
           Array.isArray(res.data.data)
         ) {
-          setNewBooks(clear ? res.data.data : [...newBooks, ...res.data.data]);
+          setNewBooks(res.data.data);
         }
       })
       .catch((error) =>
@@ -58,7 +58,7 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
   };
 
   useEffect(() => {
-    handleAddNewBooks(true);
+    handleRefreshBooks();
   }, []);
 
   return (
@@ -82,9 +82,9 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
           <IconButton
             aria-label="add to book list"
             color="success"
-            onClick={() => handleAddNewBooks()}
+            onClick={() => handleRefreshBooks()}
           >
-            <Add />
+            <Refresh />
           </IconButton>
         </div>
       </DialogTitle>
