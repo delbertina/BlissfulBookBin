@@ -58,8 +58,10 @@ function ExploreBooksDialog(props: ExploreBooksDialogProps) {
   };
 
   useEffect(() => {
-    handleRefreshBooks();
-  }, []);
+    if (storeDialog === DIALOG_ITEM.BOOK_EXPLORE) {
+      handleRefreshBooks();
+    }
+  }, [storeDialog]);
 
   return (
     <Dialog
